@@ -11,7 +11,8 @@ process.FindWindow(windowName) --> windowName: string (the window to find, no ne
 ; returns a userdata of the process and returns the process ID.
 
 process.WriteProcessMemory(processID,address,string) --> processID: number (the target process ID), address: dword or number (the address to write to), string: string (bytes to be written)
-; write a string to a process's memory.
+; write a string to a process's memory
+- 0.2-beta: fixed no writing bug; returns a false if failed and true if succeded.
 
 process.ReadProcessMemory(processID,address,size) --> processID: number (the target process ID), address: dword or number (the address to be read), size: number (the size in bytes to read)
 ; read a address of the process's memory
