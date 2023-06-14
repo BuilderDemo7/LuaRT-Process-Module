@@ -1,7 +1,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <luart.h>
-//using namespace std;
+//using namespace std; // don't need this garbage?
 
 // process.FindWindow(windowName) method
 // returns a userdata and the ID of the of the process
@@ -37,6 +37,8 @@ LUA_METHOD(process, WriteProcessMemory)
   CloseHandle(pHandle);
 
   /*
+  // checks if it was written with success
+  // returns false if no and true if yes.
   if (memory == bytes) {
 	  lua_pushboolean(L,1); // returns true if the bytes were written correctly
 	  return 1;
@@ -60,7 +62,7 @@ LUA_METHOD(process, ReadProcessMemory)
   const int pID = lua_tonumber(L, 1);
   const int address = lua_tonumber(L,2);
   const int size = lua_tonumber(L,3);
-  char memory[size];
+  char memory[size]; // the string to be returned
   
   HANDLE pHandle = OpenProcess(PROCESS_ALL_ACCESS, 0, pID);
 
