@@ -6,7 +6,7 @@ with this module you can read and write process memory through Lua 5.4.
 thanks to LuaRT you can really do a module for this!
 
 METHODS:
-process.process.FindWindow(windowName) --> windowName: string (the window to find, no need to include .exe!)
+process.FindWindow(windowName) --> windowName: string (the window to find, no need to include .exe!)
 ; find the window process
 ; returns a userdata of the process and returns the process ID.
 
