@@ -1,7 +1,8 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <luart.h>
-//using namespace std; // don't need this garbage?
+#include <process.h>
+//using namespace std;
 
 // process.FindWindow(windowName) method
 // returns a userdata and the ID of the of the process
@@ -20,25 +21,41 @@ LUA_METHOD(process, FindWindow)
   }
 }
 
+/*
+    static int process_new(lua_State* L)
+    {
+            Process ** udata = (Process **)lua_newuserdata(L, sizeof(Process));
+            *udata = new Process();
+            luaL_getmetatable(L, "Process");
+            lua_setmetatable(L, -1);
+            return 1;
+    }
+*/
+
 // process.WriteProcessMemory(processID,address,string)
+// returns false if failed and true if succeded
 LUA_METHOD(process, WriteProcessMemory)
 {
   if (LUA_TNUMBER == lua_type(L, 1) && LUA_TNUMBER == lua_type(L, 2) && LUA_TSTRING == lua_type(L, 3)) {
-  const int pID = lua_tonumber(L, -1);
-  const int address = lua_tonumber(L,-2);
-  const char* bytes = lua_tostring(L,-3);
+  const int pID = lua_tonumber(L, 1);
+  const int address = lua_tonumber(L,2);
+  const char* bytes = lua_tostring(L,3);
+  if (pID < 1) {
+	 luaL_error(L,"Invalid process ID!"); 
+  }
   //char memory[sizeof(bytes)];
   
-  HANDLE pHandle = OpenProcess(PROCESS_VM_WRITE, 0, pID);
+  HANDLE pHandle = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, 0, pID);
 
-  WriteProcessMemory(pHandle, (LPVOID)address, (LPCVOID)bytes, sizeof(bytes), NULL);
+  VirtualProtectEx(pHandle, (LPVOID)address, strlen(bytes), PAGE_READWRITE, NULL); // removes protection so it can be written
+  
+  int status = WriteProcessMemory(pHandle, (LPVOID)address, bytes, strlen(bytes), NULL); // and write it and return a status 
+  int lastErr = GetLastError();
   //ReadProcessMemory(pHandle, (LPVOID)address, &memory, sizeof(bytes), NULL);
   
   CloseHandle(pHandle);
 
   /*
-  // checks if it was written with success
-  // returns false if no and true if yes.
   if (memory == bytes) {
 	  lua_pushboolean(L,1); // returns true if the bytes were written correctly
 	  return 1;
@@ -48,7 +65,8 @@ LUA_METHOD(process, WriteProcessMemory)
       return 1;
   }
   */
-  return 0;
+  lua_pushboolean(L,status);
+  return 1;
   //lua_pushboolean(L,1);
   //return 1; // returns nothing
   }
@@ -62,7 +80,10 @@ LUA_METHOD(process, ReadProcessMemory)
   const int pID = lua_tonumber(L, 1);
   const int address = lua_tonumber(L,2);
   const int size = lua_tonumber(L,3);
-  char memory[size]; // the string to be returned
+  char memory[size];
+  if (pID < 1) {
+	 luaL_error(L,"Invalid process ID!"); 
+  }
   
   HANDLE pHandle = OpenProcess(PROCESS_ALL_ACCESS, 0, pID);
 
@@ -104,6 +125,7 @@ static const luaL_Reg processlib[] = {
 
 int __declspec(dllexport) luaopen_process(lua_State *L)
 {
-    lua_regmodulefinalize(L, process);
+    //luaL_register(L, "MyObj", processlib);
+	lua_regmodulefinalize(L, process);
     return 1;
 }
